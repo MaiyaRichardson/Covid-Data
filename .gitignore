@@ -1,7 +1,10 @@
 *.class
 *.log
+<<<<<<< HEAD
 *.class
 *.log
+=======
+>>>>>>> origin
 metastore_db/
 .bsp
 project/
