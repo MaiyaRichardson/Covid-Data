@@ -115,4 +115,29 @@ object Covid {
         result.show()
         result.write.csv("results/Top10ConfirmedByContinent")
     }
+
+    // changed by wakgari
+    def top10DeathsByContinent(hiveCtx:HiveContext): Unit = {
+        println("===Print top 10 death by continent===")
+        val result = hiveCtx.sql("SELECT continent, MAX(total_deaths) Total_Deaths FROM covid1 WHERE GROUP BY continent ORDER BY Total_Deaths DESC LIMIT 10")
+        result.show()
+        result.write.csv("results/top10DeathsByContinent")
+    }
+
+
+    def top10CasesByContinent(hiveCtx:HiveContext): Unit = {
+        println("==Print top 10 death by country==")
+        val result = hiveCtx.sql("SELECT DISTINCT continent, MAX(total_cases) Max_cases from covid1 GROUP BY continent ORDER BY Max_cases DESC LIMIT 10")
+        result.show()
+        result.write.csv("results/top10CasesByContinent")
+    }
+
+
+    def maxAndMinTotalVaccination(hiveCtx:HiveContext): Unit = {
+        println("===Print MIN total vaccinations and MAX total vaccinations===")
+        val result = hiveCtx.sql("SELECT continent, MAX(total_vaccinations) AS Max_Total_vaccination from covid1 GROUP BY continent ORDER BY Max_Total_vaccination DESC")
+        result.show()
+        result.write.csv("results/maxAndMinTotalVaccination")
+       
+    }
 }
