@@ -11,9 +11,10 @@ import java.util.Scanner
 // second changes made here
 
 object Covid {
+  
   def main(args: Array[String]): Unit = {
         // This block of code is all necessary for spark/hive/hadoop
-
+        
         System.setSecurityManager(null)
         System.setProperty("hadoop.home.dir", "C:\\hadoop\\") // change if winutils.exe is in a different bin folder
         val conf = new SparkConf()
@@ -29,22 +30,43 @@ object Covid {
       //Top10Confirmed(hiveCtx)
       //Top10DeathRatesUS(hiveCtx)
       //Top10DeathsUSbyDate(hiveCtx)
+   
 
-        while (count != 11) {
-            println("1.) Top 10 deaths by country")
-            println("2.) Bottom 10 deaths by country")
-            println("3.) Top 10 deaths by states in US (partition & bucket)")
-            println("4.) Bottom 10 deaths by states in US (partition & bucket)")
-            println("5.) Top 10 confirmed cases by country")
-            println("6.) Bottom 10 confirmed cases by country")
-            println("7.) Top 10 confirmed cases in US (partition & bucket)")
-            println("8.) Bottom 10 confirmed cases in US (partition & bucket)")
-            println("9.) Top 10 Confirmed cases by (05/02/2021) by country")
-            println("10.) Bottom 10 confirmed cases  by (05/02/2021) by country")
-            println("11.) Quit")
+
+        var scanner = new Scanner(System.in)
+        var choice = 0
+        while (choice != 11){
+            try {
+                println("Please choose an option using number keys 1-11")
+                println("1.) Top 10 deaths by country")
+                println("2.) Bottom 10 deaths by country")
+                println("3.) Top 10 deaths by states in US (partition & bucket)")
+                println("4.) Bottom 10 deaths by states in US (partition & bucket)")
+                println("5.) Top 10 confirmed cases by country")
+                println("6.) Bottom 10 confirmed cases by country")
+                println("7.) Top 10 confirmed cases in US (partition & bucket)")
+                println("8.) Bottom 10 confirmed cases in US (partition & bucket)")
+                println("9.) Top 10 Confirmed cases by (05/02/2021) by country")
+                println("10.) Bottom 10 confirmed cases  by (05/02/2021) by country")
+                println("11.) Quit")
+                var choice =  scanner.nextInt()
+                
+                if (choice == 1){
+                    Top10Confirmed(hiveCtx)
+                    
+                }
+                
+                
+
+            }catch {
+                case e: Exception => println("Eception thrown - Non numeric key entered")
+            }
         }
+        
+        
   }
-
+        
+    
     def insertCovidData(hiveCtx:HiveContext): Unit = {
 
         val output = hiveCtx.read
