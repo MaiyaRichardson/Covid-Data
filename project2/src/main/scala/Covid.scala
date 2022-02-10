@@ -8,6 +8,8 @@ import java.sql.DriverManager
 import java.sql.Connection
 import java.util.Scanner
 
+// changes made here
+
 object Covid {
   def main(args: Array[String]): Unit = {
         // This block of code is all necessary for spark/hive/hadoop
