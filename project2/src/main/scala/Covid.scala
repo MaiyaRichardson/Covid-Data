@@ -64,18 +64,18 @@ object Covid {
         
     }
 
-    def Bottom10DeathRates(hiveCtx:HiveContext): Unit = {
+    def Bottom10ConfirmedByContinent(hiveCtx:HiveContext): Unit = {
         
 
         val result = hiveCtx.sql("SELECT Province_State State, MAX(total_deaths)/MAX(total_cases) Death_Rate FROM covid1 WHERE iso_code='USA' GROUP BY State ORDER BY Death_Rate ASC LIMIT 10")
-        println("\n Bottom 10 Death Rates in US \n")
+        println("\n Bottom 10 confirmed by continent \n")
         result.show()
-        result.write.csv("results/top10DeathRatesByStatesInUS")
+        result.write.csv("results/top10ConfirmedByContinent")
     }
 
-    def Top10Confirmed(hiveCtx:HiveContext): Unit = {
+    def Top10ConfirmedByContinent(hiveCtx:HiveContext): Unit = {
         val result = hiveCtx.sql("SELECT continent, MAX(total_cases) Confirmed_Cases FROM covid1 GROUP BY continent ORDER BY Confirmed_Cases ASC LIMIT 10")
-        println("Top 10 confirmed in the world '\n'")
+        println("Top 10 confirmed by continent \n")
         result.show()
         result.write.csv("results/Top10ConfirmedByContinent")
     }
