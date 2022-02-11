@@ -29,6 +29,8 @@ object Covid {
         insertCovidData(hiveCtx)
         top10CasesUS(hiveCtx)
         btm10CasesUS(hiveCtx)
+        top10CasesByDate(hiveCtx)
+        btm10CasesByDate(hiveCtx)
       
         Bottom10ConfirmedByContinent(hiveCtx)
         Top10ConfirmedByLocation(hiveCtx)
@@ -162,8 +164,20 @@ object Covid {
         println("===Bottom 10 confirmed cases in US===")
         val result = hiveCtx.sql("SELECT location, date, Min(total_cases) AS Min_Total_Cases from covid1 WHERE location = 'United States' GROUP BY location, date ORDER BY Min_Total_Cases ASC LIMIT 10")
         result.show()
-        result.write.csv("results/top10CasesUS")
+        result.write.mode("overwrite").csv("results/btm10CasesUS")
        
+    }
+    def top10CasesByDate(hiveCtx:HiveContext): Unit = {
+        println("===Top 10 Confirmed cases by (5/2/2021) by country===")
+        val result = hiveCtx.sql("SELECT location, date, Max(total_cases) AS Max_Total_Cases from covid1 WHERE date = '5/2/2021' GROUP BY date, location ORDER BY Max_Total_Cases DESC LIMIT 10")
+        result.show()
+        result.write.mode("overwrite").csv("results/top10CasesByDate")
+    }
+    def btm10CasesByDate(hiveCtx:HiveContext): Unit = {
+        println("===Top 10 Confirmed cases by (5/2/2021) by country===")
+        val result = hiveCtx.sql("SELECT location, date, Min(total_cases) AS Min_Total_Cases from covid1 WHERE date = '5/2/2021' AND total_cases >= 0 GROUP BY date, location ORDER BY Min_Total_Cases ASC LIMIT 10")
+        result.show()
+        result.write.mode("overwrite").csv("results/top10CasesByDate")
     }
 
 }
