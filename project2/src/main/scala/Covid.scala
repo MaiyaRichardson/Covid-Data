@@ -62,10 +62,6 @@ object Covid {
             }
         }
         
-<<<<<<< HEAD
-=======
-        
->>>>>>> ca43a21ff5ff11d38ea5b62a926bbd89f2d0c0ce
   }
         
     
@@ -119,9 +115,6 @@ object Covid {
         //result.write.csv("results/Top10ConfirmedByContinent")
     }
 
-<<<<<<< HEAD
-
-=======
     def Top10Confirmed(hiveCtx:HiveContext): Unit = {
         val result = hiveCtx.sql("SELECT continent, MAX(total_cases) Confirmed_Cases FROM covid1 GROUP BY continent ORDER BY Confirmed_Cases ASC LIMIT 10")
         println("Top 10 confirmed in the world '\n'")
@@ -153,5 +146,5 @@ object Covid {
         result.write.csv("results/maxAndMinTotalVaccination")
        
     }
->>>>>>> ca43a21ff5ff11d38ea5b62a926bbd89f2d0c0ce
+
 }
