@@ -27,6 +27,8 @@ object Covid {
 
 
         insertCovidData(hiveCtx)
+        top10CasesUS(hiveCtx)
+        btm10CasesUS(hiveCtx)
       
         Bottom10ConfirmedByContinent(hiveCtx)
         Top10ConfirmedByLocation(hiveCtx)
@@ -87,6 +89,7 @@ object Covid {
         //summary2.show()
 
     }
+    
 
     //Maiya
     def Top10DeathsUSbyDate(hiveCtx:HiveContext): Unit = {
@@ -130,7 +133,7 @@ object Covid {
         result.write.csv("results/top10DeathsByContinent")
     }
 
-
+    // Wakgari
     def top10CasesByContinent(hiveCtx:HiveContext): Unit = {
         println("==Print top 10 death by country==")
         val result = hiveCtx.sql("SELECT DISTINCT continent, MAX(total_cases) Max_cases from covid1 GROUP BY continent ORDER BY Max_cases DESC LIMIT 10")
@@ -138,12 +141,28 @@ object Covid {
         result.write.csv("results/top10CasesByContinent")
     }
 
-
+    // Wakgari
     def maxAndMinTotalVaccination(hiveCtx:HiveContext): Unit = {
         println("===Print MIN total vaccinations and MAX total vaccinations===")
         val result = hiveCtx.sql("SELECT continent, MAX(total_vaccinations) AS Max_Total_vaccination from covid1 GROUP BY continent ORDER BY Max_Total_vaccination DESC")
         result.show()
         result.write.csv("results/maxAndMinTotalVaccination")
+       
+    }
+    //Sharyar
+    def top10CasesUS(hiveCtx:HiveContext): Unit = {
+        println("===Top 10 confirmed cases in US===")
+        val result = hiveCtx.sql("SELECT location, date, MAX(total_cases) AS Max_Total_Cases from covid1 WHERE location = 'United States' GROUP BY location, date ORDER BY Max_Total_Cases DESC LIMIT 10")
+        result.show()
+        result.write.mode("overwrite").csv("results/top10CasesUS")
+       
+    }
+    //Sharyar
+    def btm10CasesUS(hiveCtx:HiveContext): Unit = {
+        println("===Bottom 10 confirmed cases in US===")
+        val result = hiveCtx.sql("SELECT location, date, Min(total_cases) AS Min_Total_Cases from covid1 WHERE location = 'United States' GROUP BY location, date ORDER BY Min_Total_Cases ASC LIMIT 10")
+        result.show()
+        result.write.csv("results/top10CasesUS")
        
     }
 
