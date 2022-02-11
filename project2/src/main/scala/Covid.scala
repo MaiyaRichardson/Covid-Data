@@ -8,12 +8,13 @@ import java.sql.DriverManager
 import java.sql.Connection
 import java.util.Scanner
 
-// changes made here
+// second changes made here
 
 object Covid {
+  
   def main(args: Array[String]): Unit = {
         // This block of code is all necessary for spark/hive/hadoop
-
+        
         System.setSecurityManager(null)
         System.setProperty("hadoop.home.dir", "C:\\hadoop\\") // change if winutils.exe is in a different bin folder
         val conf = new SparkConf()
@@ -31,22 +32,43 @@ object Covid {
         Top10ConfirmedByLocation(hiveCtx)
         Top10DeathsUSbyDate(hiveCtx)
 
-        while (count != 11) {
-            println("1.) Top 10 deaths by country")
-            println("2.) Bottom 10 deaths by country")
-            println("3.) Top 10 deaths by states in US (partition & bucket)")
-            println("4.) Bottom 10 deaths by states in US (partition & bucket)")
-            println("5.) Top 10 confirmed cases by country")
-            println("6.) Bottom 10 confirmed cases by country")
-            println("7.) Top 10 confirmed cases in US (partition & bucket)")
-            println("8.) Bottom 10 confirmed cases in US (partition & bucket)")
-            println("9.) Top 10 Confirmed cases by (05/02/2021) by country")
-            println("10.) Bottom 10 confirmed cases  by (05/02/2021) by country")
-            println("11.) Quit")
+        var scanner = new Scanner(System.in)
+        var choice = 0
+        while (choice != 11){
+            try {
+                println("Please choose an option using number keys 1-11")
+                println("1.) Top 10 deaths by country")
+                println("2.) Bottom 10 deaths by country")
+                println("3.) Top 10 deaths by states in US (partition & bucket)")
+                println("4.) Bottom 10 deaths by states in US (partition & bucket)")
+                println("5.) Top 10 confirmed cases by country")
+                println("6.) Bottom 10 confirmed cases by country")
+                println("7.) Top 10 confirmed cases in US (partition & bucket)")
+                println("8.) Bottom 10 confirmed cases in US (partition & bucket)")
+                println("9.) Top 10 Confirmed cases by (05/02/2021) by country")
+                println("10.) Bottom 10 confirmed cases  by (05/02/2021) by country")
+                println("11.) Quit")
+                var choice =  scanner.nextInt()
+                
+                if (choice == 1){
+                    Top10Confirmed(hiveCtx)
+                    
+                }
+                
+                
+
+            }catch {
+                case e: Exception => println("Eception thrown - Non numeric key entered")
+            }
         }
         
+<<<<<<< HEAD
+=======
+        
+>>>>>>> ca43a21ff5ff11d38ea5b62a926bbd89f2d0c0ce
   }
-
+        
+    
     def insertCovidData(hiveCtx:HiveContext): Unit = {
 
         val output = hiveCtx.read
@@ -97,5 +119,39 @@ object Covid {
         //result.write.csv("results/Top10ConfirmedByContinent")
     }
 
+<<<<<<< HEAD
 
+=======
+    def Top10Confirmed(hiveCtx:HiveContext): Unit = {
+        val result = hiveCtx.sql("SELECT continent, MAX(total_cases) Confirmed_Cases FROM covid1 GROUP BY continent ORDER BY Confirmed_Cases ASC LIMIT 10")
+        println("Top 10 confirmed in the world '\n'")
+        result.show()
+        result.write.csv("results/Top10ConfirmedByContinent")
+    }
+
+    // changed by wakgari
+    def top10DeathsByContinent(hiveCtx:HiveContext): Unit = {
+        println("===Print top 10 death by continent===")
+        val result = hiveCtx.sql("SELECT continent, MAX(total_deaths) Total_Deaths FROM covid1 WHERE GROUP BY continent ORDER BY Total_Deaths DESC LIMIT 10")
+        result.show()
+        result.write.csv("results/top10DeathsByContinent")
+    }
+
+
+    def top10CasesByContinent(hiveCtx:HiveContext): Unit = {
+        println("==Print top 10 death by country==")
+        val result = hiveCtx.sql("SELECT DISTINCT continent, MAX(total_cases) Max_cases from covid1 GROUP BY continent ORDER BY Max_cases DESC LIMIT 10")
+        result.show()
+        result.write.csv("results/top10CasesByContinent")
+    }
+
+
+    def maxAndMinTotalVaccination(hiveCtx:HiveContext): Unit = {
+        println("===Print MIN total vaccinations and MAX total vaccinations===")
+        val result = hiveCtx.sql("SELECT continent, MAX(total_vaccinations) AS Max_Total_vaccination from covid1 GROUP BY continent ORDER BY Max_Total_vaccination DESC")
+        result.show()
+        result.write.csv("results/maxAndMinTotalVaccination")
+       
+    }
+>>>>>>> ca43a21ff5ff11d38ea5b62a926bbd89f2d0c0ce
 }
