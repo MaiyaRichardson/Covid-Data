@@ -7,63 +7,91 @@ import org.apache.spark.sql.SQLContext
 import java.sql.DriverManager
 import java.sql.Connection
 import java.util.Scanner
+import org.apache.hadoop.hive.ql.metadata.Hive
 
 // second changes made here
 
 object Covid {
-  
+  private var scanner = new Scanner(System.in)
+  val conf = new SparkConf().setMaster("local").setAppName("Covid")
+  private val sc = new SparkContext(conf)
+  private val hiveCtx = new HiveContext(sc)
   def main(args: Array[String]): Unit = {
-        // This block of code is all necessary for spark/hive/hadoop
-        
-        System.setSecurityManager(null)
-        System.setProperty("hadoop.home.dir", "C:\\hadoop\\") // change if winutils.exe is in a different bin folder
-        val conf = new SparkConf()
-            .setMaster("local") 
-            .setAppName("Covid")    // Change to whatever app name you want
-        val sc = new SparkContext(conf)
-        sc.setLogLevel("ERROR")
-        val hiveCtx = new HiveContext(sc)
-        import hiveCtx.implicits._
+    // This block of code is all necessary for spark/hive/hadoop
+    
+    System.setSecurityManager(null)
+    System.setProperty("hadoop.home.dir", "C:\\hadoop\\") // change if winutils.exe is in a different bin folder
+    // val conf = new SparkConf()
+    //     .setMaster("local") 
+    //     .setAppName("Covid")    // Change to whatever app name you want
+    //val sc = new SparkContext(conf)
+    sc.setLogLevel("ERROR")
+    //val hiveCtx = new HiveContext(sc)
+    import hiveCtx.implicits._
+    val spark = SparkSession
+    .builder
+    .appName("Covid")
+    .config("spark.master", "local")
+    .config("spark.eventLog.enabled", "false")
+    .getOrCreate()
 
 
-        insertCovidData(hiveCtx)
-        top10CasesUS(hiveCtx)
-        btm10CasesUS(hiveCtx)
-      
-        Bottom10ConfirmedByContinent(hiveCtx)
-        Top10ConfirmedByLocation(hiveCtx)
-        Top10DeathsUSbyDate(hiveCtx)
+    // insertCovidData(hiveCtx)
+    // top10CasesUS(hiveCtx)
+    // btm10CasesUS(hiveCtx)
+    
+    // Bottom10ConfirmedByContinent(hiveCtx)
+    // Top10ConfirmedByLocation(hiveCtx)
+    // Top10DeathsUSbyDate(hiveCtx)
+    covidDataMainMenu()
+    spark.stop()
 
-        var scanner = new Scanner(System.in)
-        var choice = 0
-        while (choice != 11){
-            try {
-                println("Please choose an option using number keys 1-11")
-                println("1.) Top 10 deaths by country")
-                println("2.) Bottom 10 deaths by country")
-                println("3.) Top 10 deaths by states in US (partition & bucket)")
-                println("4.) Bottom 10 deaths by states in US (partition & bucket)")
-                println("5.) Top 10 confirmed cases by country")
-                println("6.) Bottom 10 confirmed cases by country")
-                println("7.) Top 10 confirmed cases in US (partition & bucket)")
-                println("8.) Bottom 10 confirmed cases in US (partition & bucket)")
-                println("9.) Top 10 Confirmed cases by (05/02/2021) by country")
-                println("10.) Bottom 10 confirmed cases  by (05/02/2021) by country")
-                println("11.) Quit")
-                var choice =  scanner.nextInt()
-                
-                if (choice == 1){
-                    Top10Confirmed(hiveCtx)
-                    
-                }
-                
-                
+  }
 
-            }catch {
-                case e: Exception => println("Eception thrown - Non numeric key entered")
-            }
-        }
-        
+  def covidDataMainMenu(): Unit = {        
+    insertCovidData(hiveCtx)        
+    var getInCovidData = true        
+    while (getInCovidData) {           
+      println("")            
+      println("Please choose one of the options below.")            
+      println("[1] top 10 deaths of the World.")            
+      println("[2] top 10 covid cases of the World")            
+      println("[3] Max total vaccination of the World")            
+      println("[4] the amount of people fully vaccinated")           
+      println("[5] the number of bed by country")           
+      println("[6] something here")  
+      println("[7] something here")
+      println("[8] something here")
+      println("[9] something here")
+      println("[10] something here")          
+      println("To exit from this page just touch zero")            
+      println("++++++++++++++++++++++++++++++++++++++++++++++++++++++")            
+      var userInput = scanner.next().toString()            
+      if (userInput == "1") {                
+        Top10DeathsUSbyDate(hiveCtx)            
+      }            
+      else if (userInput == "2") {                
+        Bottom10ConfirmedByContinent(hiveCtx)            
+      }            
+      else if (userInput == "3") {                
+       Top10ConfirmedByLocation(hiveCtx)           
+      }            
+      else if (userInput == "4") {                
+       Top10Confirmed(hiveCtx)           
+      }           
+      else if (userInput == "5") {                
+       top10DeathsByContinent(hiveCtx)           
+      }            
+      else if (userInput == "6") {                
+        println("")           
+      }            
+      else if (userInput == "0") {                
+        getInCovidData = false                         
+      }            
+      else {               
+        println("Invalid input please try again.")           
+      }
+    }
   }
         
     
@@ -80,8 +108,8 @@ object Covid {
 
         output.createOrReplaceTempView("temp_data")
         //hiveCtx.sql("DROP TABLE IF EXISTS covid1")
-        //hiveCtx.sql("CREATE TABLE IF NOT EXISTS covid1 (iso_code STRING,continent STRING,location STRING,date STRING,total_cases DOUBLE,new_cases DOUBLE,total_deaths DOUBLE,new_deaths DOUBLE,new_tests DOUBLE,total_tests DOUBLE,total_vaccinations DOUBLE,people_vaccinated DOUBLE,people_fully_vaccinated DOUBLE,population INT,population_density FLOAT,median_age FLOAT,aged_65_older FLOAT,aged_70_older FLOAT,gdp_per_capita FLOAT,hospital_beds_per_thousand FLOAT,life_expectancy FLOAT)")
-        //hiveCtx.sql("INSERT INTO covid1 SELECT * FROM temp_data")
+        hiveCtx.sql("CREATE TABLE IF NOT EXISTS covid1 (iso_code STRING,continent STRING,location STRING,date STRING,total_cases DOUBLE,new_cases DOUBLE,total_deaths DOUBLE,new_deaths DOUBLE,new_tests DOUBLE,total_tests DOUBLE,total_vaccinations DOUBLE,people_vaccinated DOUBLE,people_fully_vaccinated DOUBLE,population INT,population_density FLOAT,median_age FLOAT,aged_65_older FLOAT,aged_70_older FLOAT,gdp_per_capita FLOAT,hospital_beds_per_thousand FLOAT,life_expectancy FLOAT)")
+        hiveCtx.sql("INSERT INTO covid1 SELECT * FROM temp_data")
         val summary = hiveCtx.sql("SELECT continent, location, total_cases FROM covid1 LIMIT 10")
         summary.show()
         //val summary2 = hiveCtx.sql("SELECT to_date(('date'),'MM/dd/yyyy') date FROM covid1 LIMIT 10") 
