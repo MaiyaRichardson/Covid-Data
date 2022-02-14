@@ -72,10 +72,10 @@ object Covid {
       println("[4] the amount of people fully vaccinated")           
       println("[5] the number of bed by country")           
       println("[6] something here")  
-      println("[7] something here")
-      println("[8] something here")
-      println("[9] something here")
-      println("[10] something here")          
+      println("[7] Top 10 confirmed cases in US")
+      println("[8] Bottom 10 confirmed cases in US")
+      println("[9] Top 10 Confirmed cases by (05/02/2021) by country")
+      println("[10] Bottom 10 confirmed cases  by (05/02/2021) by country")          
       println("To exit from this page just touch zero")            
       println("++++++++++++++++++++++++++++++++++++++++++++++++++++++")            
       var userInput = scanner.next().toString()            
@@ -96,7 +96,20 @@ object Covid {
       }            
       else if (userInput == "6") {                
         println("")           
-      }            
+      }
+      else if (userInput == "7") {                
+        top10CasesUS(hiveCtx)           
+      }
+      else if (userInput == "8") {                
+        btm10CasesUS(hiveCtx)          
+      }
+      else if (userInput == "9") {                
+        top10CasesByDate(hiveCtx)          
+      }
+      else if (userInput == "10") {                
+        btm10CasesByDate(hiveCtx)          
+      }
+                        
       else if (userInput == "0") {                
         getInCovidData = false                         
       }            
