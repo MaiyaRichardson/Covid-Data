@@ -7,7 +7,16 @@ import org.apache.spark.sql.SQLContext
 import java.sql.DriverManager
 import java.sql.Connection
 import java.util.Scanner
-import org.apache.hadoop.hive.ql.metadata.Hive
+import scala.collection.mutable.ArrayBuffer
+import org.apache.spark.sql.functions
+import org.apache.spark.sql.functions.{min, max}
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.execution.aggregate.HashAggregateExec
+import org.apache.spark.sql.execution.joins.BroadcastHashJoinExec
+import org.apache.spark.sql.expressions.scalalang.typed
+import org.apache.spark.sql.functions.{avg, broadcast, col, max}
+import org.apache.spark.sql.types
+import org.apache.hadoop.fs.HardLink
 
 // second changes made here
 
@@ -36,26 +45,8 @@ object Covid {
     .getOrCreate()
 
 
-
-    // insertCovidData(hiveCtx)
-    // top10CasesUS(hiveCtx)
-    // btm10CasesUS(hiveCtx)
-    
-    // Bottom10ConfirmedByContinent(hiveCtx)
-    // Top10ConfirmedByLocation(hiveCtx)
-    // Top10DeathsUSbyDate(hiveCtx)
     covidDataMainMenu()
     spark.stop()
-
-        insertCovidData(hiveCtx)
-        top10CasesUS(hiveCtx)
-        btm10CasesUS(hiveCtx)
-        top10CasesByDate(hiveCtx)
-        btm10CasesByDate(hiveCtx)
-      
-        Bottom10ConfirmedByContinent(hiveCtx)
-        Top10ConfirmedByLocation(hiveCtx)
-        Top10DeathsUSbyDate(hiveCtx)
 
 
   }
@@ -66,16 +57,16 @@ object Covid {
     while (getInCovidData) {           
       println("")            
       println("Please choose one of the options below.")            
-      println("[1] top 10 deaths of the World.")            
-      println("[2] top 10 covid cases of the World")            
-      println("[3] Max total vaccination of the World")            
-      println("[4] the amount of people fully vaccinated")           
-      println("[5] the number of bed by country")           
-      println("[6] something here")  
-      println("[7] Top 10 confirmed cases in US")
-      println("[8] Bottom 10 confirmed cases in US")
-      println("[9] Top 10 Confirmed cases by (05/02/2021) by country")
-      println("[10] Bottom 10 confirmed cases  by (05/02/2021) by country")          
+      println("[1] Top 10 deaths in the US")            
+      println("[2] Top 10 confirmed cases in the US")            
+      println("[3] Bottom 10 confirmed cases in the US")            
+      println("[4] Top 10 deaths by continent")           
+      println("[5] Top 10 confirmed cases by continent")           
+      println("[6] Top 10 vaccinated continents")  
+      println("[7] Top 10 confirmed cases in (5/2/2021) by location")
+      println("[8] Bottom 10 confirmed cases in (5/2/2021) by location")
+      println("[9] Bottom 10 confirmed cases by location")
+      println("[10] Top 10 confirmed cases by location")          
       println("To exit from this page just touch zero")            
       println("++++++++++++++++++++++++++++++++++++++++++++++++++++++")            
       var userInput = scanner.next().toString()            
@@ -83,31 +74,31 @@ object Covid {
         Top10DeathsUSbyDate(hiveCtx)            
       }            
       else if (userInput == "2") {                
-        Bottom10ConfirmedByContinent(hiveCtx)            
+        top10CasesUS(hiveCtx)           
       }            
       else if (userInput == "3") {                
-       Top10ConfirmedByLocation(hiveCtx)           
+        btm10CasesUS(hiveCtx)           
       }            
       else if (userInput == "4") {                
-       Top10Confirmed(hiveCtx)           
+       top10DeathsByContinent(hiveCtx)          
       }           
       else if (userInput == "5") {                
-       top10DeathsByContinent(hiveCtx)           
+       top10CasesByContinent(hiveCtx)           
       }            
       else if (userInput == "6") {                
-        println("")           
+        maxAndMinTotalVaccination(hiveCtx)           
       }
       else if (userInput == "7") {                
-        top10CasesUS(hiveCtx)           
+        top10CasesByDate(hiveCtx)           
       }
       else if (userInput == "8") {                
-        btm10CasesUS(hiveCtx)          
+        btm10CasesByDate(hiveCtx)          
       }
       else if (userInput == "9") {                
-        top10CasesByDate(hiveCtx)          
+        Bottom10ConfirmedByContinent(hiveCtx)          
       }
       else if (userInput == "10") {                
-        btm10CasesByDate(hiveCtx)          
+        Top10ConfirmedByLocation(hiveCtx)          
       }
                         
       else if (userInput == "0") {                
@@ -146,9 +137,9 @@ object Covid {
 
     //Maiya
     def Top10DeathsUSbyDate(hiveCtx:HiveContext): Unit = {
-
+        println("=== Bottom 10 death in the United States ===")
       
-        val result = hiveCtx.sql("SELECT location, date, total_deaths FROM covid1 WHERE location = 'United States' ORDER BY total_deaths DESC LIMIT 10")
+        val result = hiveCtx.sql("SELECT location, date, total_deaths AS Deaths FROM covid1 WHERE location = 'United States' ORDER BY total_deaths DESC LIMIT 10")
         println("Top10DeathsUSByDate")
         result.show()
 
@@ -156,31 +147,32 @@ object Covid {
     }
     //Maiya
     def Bottom10ConfirmedByContinent(hiveCtx:HiveContext): Unit = {
-        
+        println("=== Bottom 10 total cases by location ===")
 
         val result = hiveCtx.sql("SELECT location, date, MIN(total_cases) AS MinimumTotalCases FROM covid1 WHERE total_cases >= 0.0 GROUP BY location, date ORDER BY MinimumTotalCases ASC LIMIT 30")
-        println("\n Bottom 10 confirmed cases by continent\n")
         result.show()
         //result.write.csv("results/Bottom10DeathRatesByStatesInUS")
     }
     //Maiya
     def Top10ConfirmedByLocation(hiveCtx:HiveContext): Unit = {
+        println("=== Top 10 total cases by location ===")
         val result = hiveCtx.sql("SELECT location, date, MAX(total_cases) AS MaximumTotalCases FROM covid1 GROUP BY location, date  ORDER BY MaximumTotalCases DESC LIMIT 10")
-        println("Top 10 confirmed cases by location \n")
         result.show()
         //result.write.csv("results/Top10ConfirmedByContinent")
     }
 
-    def Top10Confirmed(hiveCtx:HiveContext): Unit = {
+    //This is going to be the trend. So don't worry about this being commented out.
+    /*def Top10Confirmed(hiveCtx:HiveContext): Unit = {
+        println("=== Top 10 confirmed by continent ===")
         val result = hiveCtx.sql("SELECT continent, MAX(total_cases) Confirmed_Cases FROM covid1 GROUP BY continent ORDER BY Confirmed_Cases ASC LIMIT 10")
         println("Top 10 confirmed in the world '\n'")
         result.show()
         result.write.csv("results/Top10ConfirmedByContinent")
-    }
+    }*/
 
     // changed by wakgari
     def top10DeathsByContinent(hiveCtx:HiveContext): Unit = {
-        println("===Print top 10 death by continent===")
+        println("=== Top 10 deaths by continent ===")
         val result = hiveCtx.sql("SELECT continent, MAX(total_deaths) Total_Deaths FROM covid1 WHERE GROUP BY continent ORDER BY Total_Deaths DESC LIMIT 10")
         result.show()
         result.write.csv("results/top10DeathsByContinent")
@@ -188,7 +180,7 @@ object Covid {
 
     // Wakgari
     def top10CasesByContinent(hiveCtx:HiveContext): Unit = {
-        println("==Print top 10 death by country==")
+        println("== Top 10 confirmed cases by continent ==")
         val result = hiveCtx.sql("SELECT DISTINCT continent, MAX(total_cases) Max_cases from covid1 GROUP BY continent ORDER BY Max_cases DESC LIMIT 10")
         result.show()
         result.write.csv("results/top10CasesByContinent")
@@ -196,15 +188,15 @@ object Covid {
 
     // Wakgari
     def maxAndMinTotalVaccination(hiveCtx:HiveContext): Unit = {
-        println("===Print MIN total vaccinations and MAX total vaccinations===")
-        val result = hiveCtx.sql("SELECT continent, MAX(total_vaccinations) AS Max_Total_vaccination from covid1 GROUP BY continent ORDER BY Max_Total_vaccination DESC")
+        println("=== Top 10 total vaccinations by continent ===")
+        val result = hiveCtx.sql("SELECT continent, MAX(total_vaccinations) AS Max_Total_vaccination from covid1 GROUP BY continent ORDER BY Max_Total_vaccination DESC LIMIT 10")
         result.show()
         result.write.csv("results/maxAndMinTotalVaccination")
        
     }
     //Sharyar
     def top10CasesUS(hiveCtx:HiveContext): Unit = {
-        println("===Top 10 confirmed cases in US===")
+        println("=== Top 10 total confirmed cases in US ===")
         val result = hiveCtx.sql("SELECT location, date, MAX(total_cases) AS Max_Total_Cases from covid1 WHERE location = 'United States' GROUP BY location, date ORDER BY Max_Total_Cases DESC LIMIT 10")
         result.show()
         result.write.mode("overwrite").csv("results/top10CasesUS")
@@ -212,20 +204,22 @@ object Covid {
     }
     //Sharyar
     def btm10CasesUS(hiveCtx:HiveContext): Unit = {
-        println("===Bottom 10 confirmed cases in US===")
+        println("=== Bottom 10 confirmed cases in US ===")
         val result = hiveCtx.sql("SELECT location, date, Min(total_cases) AS Min_Total_Cases from covid1 WHERE location = 'United States' GROUP BY location, date ORDER BY Min_Total_Cases ASC LIMIT 10")
         result.show()
         result.write.mode("overwrite").csv("results/btm10CasesUS")
        
     }
+    //Sharyar
     def top10CasesByDate(hiveCtx:HiveContext): Unit = {
-        println("===Top 10 Confirmed cases by (5/2/2021) by country===")
+        println("=== Top 10 total cases on (5/2/2021) by location ===")
         val result = hiveCtx.sql("SELECT location, date, Max(total_cases) AS Max_Total_Cases from covid1 WHERE date = '5/2/2021' GROUP BY date, location ORDER BY Max_Total_Cases DESC LIMIT 10")
         result.show()
         result.write.mode("overwrite").csv("results/top10CasesByDate")
     }
+    //Sharyar
     def btm10CasesByDate(hiveCtx:HiveContext): Unit = {
-        println("===Top 10 Confirmed cases by (5/2/2021) by country===")
+        println("=== Bottom 10 total cases on (5/2/2021) by location ===")
         val result = hiveCtx.sql("SELECT location, date, Min(total_cases) AS Min_Total_Cases from covid1 WHERE date = '5/2/2021' AND total_cases >= 0 GROUP BY date, location ORDER BY Min_Total_Cases ASC LIMIT 10")
         result.show()
         result.write.mode("overwrite").csv("results/top10CasesByDate")
