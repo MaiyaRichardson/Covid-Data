@@ -172,10 +172,10 @@ object Covid {
     //This is the trend
     def TrendInUSByDeaths(hiveCtx:HiveContext): Unit = {    
         println("=== Trend of deaths in the US by date ===")
-        val result = hiveCtx.sql("SELECT iso_code, date, (total_deaths) Deaths FROM covid1 WHERE iso_code='USA' AND date IN ('12/14/2020', '1/15/2021','2/15/2021','3/15/2021','4/15/2021','5/15/2021','6/15/2021','7/15/2021','8/15/2021','9/15/2021','10/15/2021','11/15/2021','12/15/2021') GROUP BY iso_code, date, Deaths ORDER BY date")
+        val result = hiveCtx.sql("SELECT iso_code, date, (new_cases) NewCases, (people_vaccinated) Vaccinated, (new_deaths) Deaths FROM covid1 WHERE iso_code='USA' AND date IN ('12/14/2020', '1/15/2021','2/15/2021','3/15/2021','4/15/2021','5/15/2021','6/15/2021','7/15/2021','8/15/2021','9/15/2021','10/15/2021','11/15/2021','12/15/2021') GROUP BY iso_code, date, NewCases, Vaccinated, Deaths ORDER BY date")
         
         result.show()
-        //result.write.csv("results/TrendInDeathsUS")
+        result.write.csv("results/TrendInDeathsUS")
     }
 
     // changed by wakgari
