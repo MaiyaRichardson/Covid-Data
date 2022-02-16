@@ -143,22 +143,22 @@ object Covid {
         val result = hiveCtx.sql("SELECT location, date, total_deaths AS Deaths FROM covid1 WHERE location = 'United States' ORDER BY total_deaths DESC LIMIT 10")
         
         result.show()
-        //result.write.csv("results/Top10DeathsUS")
+        result.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save("results/Top10DeathsUS")
     }
     //Maiya
     def Bottom10TotalCasesLocation(hiveCtx:HiveContext): Unit = {
         println("=== Bottom 10 total cases by location ===")
 
-        val result = hiveCtx.sql("SELECT location, date, MIN(total_cases) AS MinimumTotalCases FROM covid1 WHERE total_cases >= 0.0 GROUP BY location, date ORDER BY MinimumTotalCases ASC LIMIT 10")
+        val result = hiveCtx.sql("SELECT location, date, (total_cases) AS MinimumTotalCases FROM covid1 WHERE total_cases >= 0.0 GROUP BY location, date, MinimumTotalCases ORDER BY MinimumTotalCases ASC LIMIT 10")
         result.show()
-        //result.write.csv("results/Bottom10TotalCasesLocation")
+        result.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save("results/Bottom10TotalCasesLocation")
     }
     //Maiya
     def Top10CasesByLocation(hiveCtx:HiveContext): Unit = {
         println("=== Top 10 total cases by location ===")
-        val result = hiveCtx.sql("SELECT location, date, MAX(total_cases) AS MaximumTotalCases FROM covid1 GROUP BY location, date  ORDER BY MaximumTotalCases DESC LIMIT 10")
+        val result = hiveCtx.sql("SELECT location, date, MAX(total_cases) AS MaximumTotalCases FROM covid1 GROUP BY location, date ORDER BY MaximumTotalCases DESC LIMIT 10")
         result.show()
-        //result.write.csv("results/Top10CasesByLocation")
+        result.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save("results/Top10CasesByLocation")
     }
     //This is the trend
     def TrendInUSByDeaths(hiveCtx:HiveContext): Unit = {    
@@ -166,7 +166,7 @@ object Covid {
         val result = hiveCtx.sql("SELECT iso_code, date, (new_cases) NewCases, (people_vaccinated) Vaccinated, (new_deaths) Deaths FROM covid1 WHERE iso_code='USA' AND date IN ('12/14/2020', '1/15/2021','2/15/2021','3/15/2021','4/15/2021','5/15/2021','6/15/2021','7/15/2021','8/15/2021','9/15/2021','10/15/2021','11/15/2021','12/15/2021') GROUP BY iso_code, date, NewCases, Vaccinated, Deaths ORDER BY date")
         
         result.show()
-        //result.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save("results/TrendingInDeaths")
+        result.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save("results/TrendingInDeaths")
 
 
    
@@ -177,7 +177,7 @@ object Covid {
         println("=== Top 10 deaths by continent ===")
         val result = hiveCtx.sql("SELECT continent, MAX(total_deaths) Total_Deaths FROM covid1 WHERE continent IS NOT NULL GROUP BY continent ORDER BY Total_Deaths DESC LIMIT 10")
         result.show()
-        //result.write.csv("results/top10DeathsByContinent")
+        result.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save("results/top10DeathsByContinent")
     }
 
     // Wakgari
@@ -185,7 +185,7 @@ object Covid {
         println("== Top 10 confirmed cases by continent ==")
         val result = hiveCtx.sql("SELECT DISTINCT continent, MAX(total_cases) Max_cases from covid1 WHERE continent IS NOT NULL GROUP BY continent ORDER BY Max_cases DESC LIMIT 10")
         result.show()
-        //result.write.csv("results/TotalCasesByContinent")
+        result.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save("results/TotalCasesByContinent")
     }
 
     // Wakgari
@@ -193,7 +193,7 @@ object Covid {
         println("=== Top 10 total vaccinations by continent ===")
         val result = hiveCtx.sql("SELECT continent, MAX(total_vaccinations) AS Max_Total_vaccination from covid1 WHERE continent IS NOT NULL GROUP BY continent ORDER BY Max_Total_vaccination DESC LIMIT 10")
         result.show()
-        //result.write.csv("results/TotalVaccination")
+        result.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save("results/TotalVaccination")
        
     }
     //Sharyar
