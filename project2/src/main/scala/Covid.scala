@@ -137,11 +137,12 @@ object Covid {
 
     //Maiya
     def Top10DeathsUSbyDate(hiveCtx:HiveContext): Unit = {
-        println("=== Bottom 10 death in the United States ===")
+        println("=== Bottom 10 deaths in the United States ===")
       
         val result = hiveCtx.sql("SELECT location, date, total_deaths AS Deaths FROM covid1 WHERE location = 'United States' ORDER BY total_deaths DESC LIMIT 10")
         println("Top10DeathsUSByDate")
         result.show()
+        result.write.csv("results/To10DeathsUSbyDate")
 
         
     }
