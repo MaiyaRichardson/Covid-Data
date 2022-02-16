@@ -17,6 +17,7 @@ import org.apache.spark.sql.expressions.scalalang.typed
 import org.apache.spark.sql.functions.{avg, broadcast, col, max}
 import org.apache.spark.sql.types
 import org.apache.hadoop.fs.HardLink
+import org.apache.spark.sql.functions.{to_date, to_timestamp}
 
 // second changes made here
 
@@ -44,7 +45,7 @@ object Covid {
     .config("spark.eventLog.enabled", "false")
     .getOrCreate()
 
-
+    //insertCovidData(hiveCtx)
     covidDataMainMenu()
     spark.stop()
 
@@ -52,7 +53,7 @@ object Covid {
   }
 
   def covidDataMainMenu(): Unit = {        
-    insertCovidData(hiveCtx)        
+    //insertCovidData(hiveCtx)        
     var getInCovidData = true        
     while (getInCovidData) {           
       println("")            
@@ -66,7 +67,8 @@ object Covid {
       println("[7] Top 10 confirmed cases in (5/2/2021) by location")
       println("[8] Bottom 10 confirmed cases in (5/2/2021) by location")
       println("[9] Bottom 10 confirmed cases by location")
-      println("[10] Top 10 confirmed cases by location")          
+      println("[10] Top 10 confirmed cases by location")
+      println("[11] The trend in deaths in the US by date")          
       println("To exit from this page just touch zero")            
       println("++++++++++++++++++++++++++++++++++++++++++++++++++++++")            
       var userInput = scanner.next().toString()            
@@ -100,7 +102,9 @@ object Covid {
       else if (userInput == "10") {                
         Top10ConfirmedByLocation(hiveCtx)          
       }
-                        
+      else if (userInput == "11") {
+        TrendInUSByDeaths(hiveCtx)
+      }            
       else if (userInput == "0") {                
         getInCovidData = false                         
       }            
@@ -123,20 +127,18 @@ object Covid {
         // output.registerTempTable("data2") // This will create a temporary table from your dataframe reader that can be used for queries. 
 
         output.createOrReplaceTempView("temp_data")
-        //hiveCtx.sql("DROP TABLE IF EXISTS covid1")
+        hiveCtx.sql("DROP TABLE IF EXISTS covid1")
         hiveCtx.sql("CREATE TABLE IF NOT EXISTS covid1 (iso_code STRING,continent STRING,location STRING,date STRING,total_cases DOUBLE,new_cases DOUBLE,total_deaths DOUBLE,new_deaths DOUBLE,new_tests DOUBLE,total_tests DOUBLE,total_vaccinations DOUBLE,people_vaccinated DOUBLE,people_fully_vaccinated DOUBLE,population INT,population_density FLOAT,median_age FLOAT,aged_65_older FLOAT,aged_70_older FLOAT,gdp_per_capita FLOAT,hospital_beds_per_thousand FLOAT,life_expectancy FLOAT)")
         hiveCtx.sql("INSERT INTO covid1 SELECT * FROM temp_data")
         val summary = hiveCtx.sql("SELECT continent, location, total_cases FROM covid1 LIMIT 10")
         summary.show()
-        //val summary2 = hiveCtx.sql("SELECT to_date(('date'),'MM/dd/yyyy') date FROM covid1 LIMIT 10") 
-        
-        //summary2.show()
 
     }
     
 
     //Maiya
     def Top10DeathsUSbyDate(hiveCtx:HiveContext): Unit = {
+<<<<<<< HEAD
         println("=== Bottom 10 deaths in the United States ===")
       
         val result = hiveCtx.sql("SELECT location, date, total_deaths AS Deaths FROM covid1 WHERE location = 'United States' ORDER BY total_deaths DESC LIMIT 10")
@@ -144,7 +146,13 @@ object Covid {
         result.show()
         result.write.csv("results/To10DeathsUSbyDate")
 
+=======
+        println("=== Top 10 death in the United States ===")
+      
+        val result = hiveCtx.sql("SELECT location, date, total_deaths AS Deaths FROM covid1 WHERE location = 'United States' ORDER BY total_deaths DESC LIMIT 10")
+>>>>>>> d18b89d39118b1e46ad1d0ffbd250f0ccfd71b30
         
+        result.show()
     }
     //Maiya
     def Bottom10ConfirmedByContinent(hiveCtx:HiveContext): Unit = {
@@ -161,15 +169,14 @@ object Covid {
         result.show()
         //result.write.csv("results/Top10ConfirmedByContinent")
     }
-
-    //This is going to be the trend. So don't worry about this being commented out.
-    /*def Top10Confirmed(hiveCtx:HiveContext): Unit = {
-        println("=== Top 10 confirmed by continent ===")
-        val result = hiveCtx.sql("SELECT continent, MAX(total_cases) Confirmed_Cases FROM covid1 GROUP BY continent ORDER BY Confirmed_Cases ASC LIMIT 10")
-        println("Top 10 confirmed in the world '\n'")
+    //This is the trend
+    def TrendInUSByDeaths(hiveCtx:HiveContext): Unit = {    
+        println("=== Trend of deaths in the US by date ===")
+        val result = hiveCtx.sql("SELECT iso_code, date, (total_deaths) Deaths FROM covid1 WHERE iso_code='USA' AND date IN ('12/14/2020', '1/15/2021','2/15/2021','3/15/2021','4/15/2021','5/15/2021','6/15/2021','7/15/2021','8/15/2021','9/15/2021','10/15/2021','11/15/2021','12/15/2021') GROUP BY iso_code, date, Deaths ORDER BY date")
+        
         result.show()
-        result.write.csv("results/Top10ConfirmedByContinent")
-    }*/
+        //result.write.csv("results/TrendInDeathsUS")
+    }
 
     // changed by wakgari
     def top10DeathsByContinent(hiveCtx:HiveContext): Unit = {
